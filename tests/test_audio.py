@@ -106,3 +106,12 @@ def test_decode_silent_raises():
 def test_decode_empty_raises():
     with pytest.raises(AudioDecodeError):
         decode_audio_to_morse(np.array([], dtype=np.float32), 16000)
+
+
+def test_decode_robust_to_moderate_noise():
+    rng = np.random.default_rng(seed=42)
+    samples, sr = synth_morse_wav("... --- ...", wpm=15)
+    noise = rng.normal(0, 0.05, size=samples.shape).astype(np.float32)
+    noisy = samples + noise
+    result = decode_audio_to_morse(noisy, sr)
+    assert result.morse == "... --- ..."
