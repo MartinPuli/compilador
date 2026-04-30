@@ -77,18 +77,27 @@ Códigos de salida:
 - `1` — error en alguna fase del compilador (léxico/sintáctico/semántico/runtime)
 - `2` — archivo no encontrado
 
-## Studio (UI visual)
+## MORSE.LAB (UI visual recomendada)
+
+UI web hecha a mano (Flask + HTML/CSS/JS, estética CRT phosphor):
+
+```bash
+flask --app web.server run --port 5173
+# → http://127.0.0.1:5173
+```
+
+Cuatro vistas:
+
+- **Editor** — escribir / pegar código, ejecutar, ver tokens y AST.
+- **Audio** — subir un `.wav` con beeps Morse, decodificarlo, mandarlo al editor.
+- **Inspector** — las 7 partes del TP en vivo (alfabeto, EBNF, AFD, AST en vivo, snapshot de tabla por sentencia, galería de errores semánticos, etc.).
+- **Ayuda** — tablas de Morse, keywords y operadores.
+
+Alternativa Streamlit (más feo pero también funciona):
 
 ```bash
 streamlit run studio/app.py
 ```
-
-Cuatro páginas:
-
-- **Editor** — escribir / pegar código, ejecutar, ver tokens y AST.
-- **Audio → Morse** — grabar o subir un `.wav` con beeps, decodificarlo, mandarlo al editor.
-- **TP Inspector** — pestañas con cada Parte del TP (1 a 7) en vivo.
-- **Ayuda** — tablas de Morse, keywords y operadores.
 
 ## Plantillas de programas
 

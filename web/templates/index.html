@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MORSE.LAB — compilador en código Morse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=JetBrains+Mono:wght@300;400;500;700&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="phosphor-glow" aria-hidden="true"></div>
+
+  <aside class="rail rail-left" aria-label="Navegación">
+    <div class="rail-mark">
+      <span class="rail-dot" data-pulse></span>
+      <span class="rail-label">M.LAB</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item is-active" data-view="editor">
+        <span class="nav-num">01</span>
+        <span class="nav-name">Editor</span>
+      </button>
+      <button class="nav-item" data-view="audio">
+        <span class="nav-num">02</span>
+        <span class="nav-name">Audio</span>
+      </button>
+      <button class="nav-item" data-view="inspector">
+        <span class="nav-num">03</span>
+        <span class="nav-name">Inspector</span>
+      </button>
+      <button class="nav-item" data-view="ayuda">
+        <span class="nav-num">04</span>
+        <span class="nav-name">Ayuda</span>
+      </button>
+    </nav>
+    <div class="rail-meta">
+      <span class="meta-line">v1.0</span>
+      <span class="meta-line">PYTHON 3.12</span>
+      <span class="meta-line">74 TESTS ✓</span>
+    </div>
+  </aside>
+
+  <aside class="rail rail-right" aria-hidden="true">
+    <div class="morse-stream" id="morse-stream"></div>
+  </aside>
+
+  <main class="stage">
+    <header class="masthead">
+      <div class="mast-overline">
+        <span class="dotline" aria-hidden="true"></span>
+        <span>UN COMPILADOR EN CÓDIGO MORSE</span>
+        <span class="dotline" aria-hidden="true"></span>
+      </div>
+      <h1 class="mast-title">
+        <span class="serif-italic">Morse</span><span class="dot-accent">·</span><span class="serif-italic">Lab</span>
+      </h1>
+      <p class="mast-sub">
+        <span class="op">/</span>
+        <span>léxico</span>
+        <span class="op">·</span>
+        <span>sintáctico</span>
+        <span class="op">·</span>
+        <span>semántico</span>
+        <span class="op">·</span>
+        <span>intérprete</span>
+        <span class="op">·</span>
+        <span>tts</span>
+        <span class="op">/</span>
+      </p>
+    </header>
+
+    <section class="view view-editor is-active" data-view="editor">
+      <div class="section-head">
+        <span class="sec-num">01</span>
+        <h2 class="sec-title"><em>Editor</em> &mdash; escribí Morse, ejecutá, observá.</h2>
+      </div>
+
+      <div class="editor-grid">
+        <div class="editor-pane">
+          <div class="pane-bar">
+            <span class="pane-label">SOURCE</span>
+            <select id="example-select" class="select">
+              <option value="">— cargar ejemplo —</option>
+            </select>
+          </div>
+          <textarea id="source" class="source" spellcheck="false"
+            placeholder="-- --- ... - .-. .- .-. / &quot;.... --- .-.. .-&quot;"></textarea>
+          <div class="actions">
+            <button class="btn btn-primary" data-action="run">
+              <span class="bracket">[</span><span>Ejecutar</span><span class="bracket">]</span>
+            </button>
+            <button class="btn" data-action="tokens">
+              <span class="bracket">[</span><span>Tokens</span><span class="bracket">]</span>
+            </button>
+            <button class="btn" data-action="ast">
+              <span class="bracket">[</span><span>AST</span><span class="bracket">]</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="output-pane" id="output-pane">
+          <div class="pane-bar">
+            <span class="pane-label" id="output-label">OUTPUT</span>
+            <span class="status-dot" id="status-dot" data-state="idle"></span>
+          </div>
+          <div class="output-body" id="output-body">
+            <p class="placeholder">Esperando un programa…</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view view-audio" data-view="audio">
+      <div class="section-head">
+        <span class="sec-num">02</span>
+        <h2 class="sec-title"><em>Audio</em> &mdash; los beeps se vuelven código.</h2>
+      </div>
+
+      <div class="audio-grid">
+        <div class="card">
+          <div class="pane-bar">
+            <span class="pane-label">ARCHIVO</span>
+          </div>
+          <div class="audio-drop">
+            <input type="file" id="audio-file" accept="audio/wav,.wav" hidden>
+            <label for="audio-file" class="audio-drop-label">
+              <span class="audio-drop-glyph">⌘</span>
+              <span>arrastrá o seleccioná un .wav</span>
+            </label>
+            <div id="audio-name" class="audio-name"></div>
+          </div>
+          <div class="audio-controls">
+            <label class="ctl">
+              <span>WPM</span>
+              <input type="number" id="wpm" min="0" max="40" value="0" class="num">
+              <span class="hint">0 = autodetectar</span>
+            </label>
+            <button class="btn btn-primary" data-action="decode">
+              <span class="bracket">[</span><span>Decodificar</span><span class="bracket">]</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card audio-result" id="audio-result">
+          <div class="pane-bar">
+            <span class="pane-label">RESULTADO</span>
+          </div>
+          <div class="metrics">
+            <div class="metric">
+              <span class="metric-num" id="m-wpm">—</span>
+              <span class="metric-label">wpm detectado</span>
+            </div>
+            <div class="metric">
+              <span class="metric-num" id="m-dot">—</span>
+              <span class="metric-label">dot length / ms</span>
+            </div>
+          </div>
+          <pre class="morse-out" id="morse-out">—</pre>
+          <button class="btn btn-ghost" data-action="send-to-editor" disabled>
+            <span class="bracket">[</span><span>Mandar al editor</span><span class="bracket">]</span>
+          </button>
+          <canvas id="env-chart" class="env-chart" width="600" height="80"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="view view-inspector" data-view="inspector">
+      <div class="section-head">
+        <span class="sec-num">03</span>
+        <h2 class="sec-title"><em>Inspector</em> &mdash; las 7 partes del TP en vivo.</h2>
+      </div>
+
+      <div class="tp-rail">
+        <button class="tp-step is-active" data-tp="1">01 · Definición</button>
+        <button class="tp-step" data-tp="2">02 · Léxico</button>
+        <button class="tp-step" data-tp="3">03 · Sintáctico</button>
+        <button class="tp-step" data-tp="4">04 · Tabla</button>
+        <button class="tp-step" data-tp="5">05 · Semántico</button>
+        <button class="tp-step" data-tp="6">06 · Síntesis</button>
+        <button class="tp-step" data-tp="7">07 · IA</button>
+      </div>
+
+      <div class="tp-body">
+        <div class="tp-panel is-active" data-tp="1">
+          <h3 class="panel-h">Alfabeto</h3>
+          <pre class="prose-code">Σ = { '.', '-', ' ', '/', '\n', '"' }</pre>
+          <h3 class="panel-h">Gramática EBNF</h3>
+          <pre class="prose-code" id="ebnf-block">programa     ::= { sentencia } ;
+sentencia    ::= declaracion | asignacion | mostrar | si | mientras ;
+declaracion  ::= "VAR" identificador "ASIG" expresion "\n" ;
+asignacion   ::= identificador "ASIG" expresion "\n" ;
+mostrar      ::= "MOSTRAR" expresion "\n" ;
+si           ::= "SI" expresion "\n" { sentencia } [ "SINO" "\n" { sentencia } ] "FIN" "\n" ;
+mientras     ::= "MIENTRAS" expresion "\n" { sentencia } "FIN" "\n" ;
+expresion    ::= comparacion ;
+comparacion  ::= aritmetica [ ("IGUAL"|"DIST"|"MEN"|"MAY") aritmetica ] ;
+aritmetica   ::= termino { ("MAS"|"MENOS") termino } ;
+termino      ::= factor { ("POR"|"DIV") factor } ;
+factor       ::= numero | texto | "VERDADERO" | "FALSO" | identificador
+              | "(" expresion ")" ;</pre>
+          <h3 class="panel-h">Derivación &mdash; <em>VAR X ASIG 10</em></h3>
+          <pre class="prose-code">sentencia ⇒ declaracion
+         ⇒ "VAR" identificador "ASIG" expresion
+         ⇒ "VAR" "X" "ASIG" numero
+         ⇒ "VAR" "X" "ASIG" "10"</pre>
+        </div>
+
+        <div class="tp-panel" data-tp="2">
+          <h3 class="panel-h">AFD del decodificador Morse</h3>
+          <pre class="prose-code">          ┌────────┐
+   start ─▶│   S0   │── '.' or '-' ──▶┐
+          └────────┘                  ▼
+                                   ┌────────┐
+                                   │   S1   │── '.' or '-' ──▶ S1
+                                   │ accum  │
+                                   └────────┘
+                                   │  ' '   │  '/' / '\n' / '"'
+                                   ▼         ▼
+                              emit letter   emit separator / start string</pre>
+          <h3 class="panel-h">Trace en vivo &mdash; Morse → tokens</h3>
+          <input type="text" id="lex-trace-input" class="prose-input"
+            value="...- .- .-. / -..- / .- ... .. --. / .---- -----">
+          <div id="lex-trace-out" class="trace"></div>
+        </div>
+
+        <div class="tp-panel" data-tp="3">
+          <h3 class="panel-h">Tipo de parser</h3>
+          <p class="panel-prose">
+            Recursivo descendente, <em>LL(1)</em>. Cada no-terminal se decide con un único token de
+            lookahead — las sentencias por su keyword inicial (VAR / MOSTRAR / SI / MIENTRAS) o por
+            un IDENT en la asignación. Las expresiones usan precedencia por niveles para evitar
+            recursión por izquierda. Implementación a mano, sin parser generators.
+          </p>
+          <h3 class="panel-h">AST en vivo</h3>
+          <input type="text" id="ast-input" class="prose-input"
+            value="...- .- .-. / -..- / .- ... .. --. / .---- -----">
+          <pre class="prose-code" id="ast-out">—</pre>
+        </div>
+
+        <div class="tp-panel" data-tp="4">
+          <h3 class="panel-h">Estructura</h3>
+          <p class="panel-prose">
+            Hashmap (<code>dict</code>) con clave = nombre de variable y valor =
+            <code>SymbolInfo(tipo, valor, linea_declaracion)</code>. Métodos: <code>declarar</code>,
+            <code>asignar</code>, <code>consultar</code>, <code>existe</code>, <code>snapshot</code>.
+            Un único ámbito global.
+          </p>
+          <h3 class="panel-h">Snapshot por sentencia</h3>
+          <textarea id="symtab-source" class="source small">...- .- .-. / -..- / .- ... .. --. / .....
+...- .- .-. / .-. / .- ... .. --. / .----
+.-. / .- ... .. --. / .-. / .--. --- .-. / -..-
+-..- / .- ... .. --. / -..- / -- . -. --- ... / .----
+-- --- ... - .-. .- .-. / .-.</textarea>
+          <button class="btn" data-action="run-symtab">
+            <span class="bracket">[</span><span>Ejecutar paso a paso</span><span class="bracket">]</span>
+          </button>
+          <div id="symtab-out"></div>
+        </div>
+
+        <div class="tp-panel" data-tp="5">
+          <h3 class="panel-h">Programas con error semántico</h3>
+          <div id="error-gallery" class="error-gallery"></div>
+        </div>
+
+        <div class="tp-panel" data-tp="6">
+          <h3 class="panel-h">Intérprete + ElevenLabs</h3>
+          <p class="panel-prose">
+            La fase de síntesis del TP es el <em>intérprete tree-walking</em>: recorre el AST,
+            ejecuta cada sentencia y captura cada <code>MOSTRAR</code> en un buffer. La salida
+            acumulada se manda opcionalmente a la API de ElevenLabs y se convierte en un
+            <code>output.mp3</code> narrado con voz humana.
+          </p>
+          <pre class="prose-code">archivo.morse → Lexer → Parser → AST → Semántico → Intérprete → output.mp3</pre>
+          <p class="panel-prose">CLI:</p>
+          <pre class="prose-code">python main.py examples/factorial.morse
+python main.py examples/factorial.morse --tts</pre>
+        </div>
+
+        <div class="tp-panel" data-tp="7">
+          <h3 class="panel-h">Bitácora de uso de IA</h3>
+          <p class="panel-prose">
+            El proyecto se desarrolló con asistencia de Claude Code (Opus 4.7). Toda la bitácora
+            está en <code>docs/uso_ia.md</code>: prompts importantes, componentes generados con IA,
+            errores detectados en respuestas y correcciones manuales.
+          </p>
+          <ul class="bullet">
+            <li>Diseño del lenguaje y elección de operadores como palabras Morse (no símbolos).</li>
+            <li>Estrategia del lexer en dos pasos (decodificación Morse + clasificación).</li>
+            <li>Parser recursivo descendente con un método por no-terminal.</li>
+            <li>Intérprete tree-walking + wrapper de ElevenLabs con cliente inyectable.</li>
+            <li>Decoder de audio puro con numpy/scipy (envelope RMS + Otsu + RLE).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="view view-ayuda" data-view="ayuda">
+      <div class="section-head">
+        <span class="sec-num">04</span>
+        <h2 class="sec-title"><em>Ayuda</em> &mdash; el alfabeto, las palabras, las reglas.</h2>
+      </div>
+
+      <div class="ayuda-grid">
+        <div class="card">
+          <div class="pane-bar"><span class="pane-label">LETRAS</span></div>
+          <div class="morse-table" id="letters-table"></div>
+        </div>
+        <div class="card">
+          <div class="pane-bar"><span class="pane-label">DÍGITOS</span></div>
+          <div class="morse-table" id="digits-table"></div>
+        </div>
+        <div class="card wide">
+          <div class="pane-bar"><span class="pane-label">KEYWORDS Y OPERADORES</span></div>
+          <div class="kw-table" id="kw-table"></div>
+        </div>
+        <div class="card wide">
+          <div class="pane-bar"><span class="pane-label">SEPARADORES</span></div>
+          <ul class="bullet">
+            <li><b>1 espacio</b> entre letras de la misma palabra.</li>
+            <li><b>3 espacios</b> o <code>/</code> entre palabras / tokens.</li>
+            <li><b>Salto de línea</b> entre sentencias.</li>
+            <li><b>Comillas</b> <code>"…"</code> para literales de texto, contenido también en Morse.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>TP integrador · Lenguajes Formales y Compiladores</span>
+      <span class="op">·</span>
+      <span>74 tests verdes</span>
+      <span class="op">·</span>
+      <span>todo a mano</span>
+    </footer>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

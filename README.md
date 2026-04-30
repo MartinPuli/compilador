@@ -20,13 +20,22 @@ python main.py archivo.morse --tokens           # solo tokens
 python main.py archivo.morse --ast              # solo AST
 ```
 
-## Uso — Studio (UI visual)
+## Uso — MORSE.LAB (UI visual)
+
+UI web propia con backend Flask y frontend HTML/CSS/JS hecho a mano (estética CRT phosphor + tipografía editorial italic):
+
+```bash
+flask --app web.server run --port 5173
+# → abrir http://127.0.0.1:5173
+```
+
+Cuatro vistas: **Editor** (escribir / ejecutar / ver tokens y AST), **Audio** (subir .wav, decodificar, mandar al editor), **Inspector** (las 7 partes del TP en vivo), **Ayuda** (tablas Morse y de keywords).
+
+Alternativa rápida con Streamlit (más simple, menos pulida):
 
 ```bash
 streamlit run studio/app.py
 ```
-
-Cuatro páginas: Editor, Audio→Morse (decodifica .wav o grabación de mic), TP Inspector (Partes 1-7 en vivo), Ayuda.
 
 ## Tests
 
