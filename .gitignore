@@ -7,3 +7,18 @@ venv/
 *.mp3
 output.mp3
 .DS_Store
+
+# Playwright / Puppeteer artifacts
+.playwright-mcp/
+playwright-report/
+test-results/
+
+# Local screenshots (not part of the project)
+morselab-*.png
+*.screenshot.png
+
+# Original PDF kept locally; not part of the repo
+TP_Compilador_Asistido_por_IA*.pdf
+
+# Audio test fixtures (generated on the fly)
+*.wav
