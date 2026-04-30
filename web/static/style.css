@@ -51,9 +51,14 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-columns: var(--rail-w) 1fr var(--rail-r-w);
+  grid-template-areas: "left main right";
   gap: 0;
   overflow-x: hidden;
 }
+
+.rail-left  { grid-area: left; }
+.rail-right { grid-area: right; }
+.stage      { grid-area: main; }
 
 /* ---------- atmosphere ---------- */
 
@@ -120,6 +125,7 @@ body {
   padding: 0;
   overflow: hidden;
   background: var(--bg);
+  position: relative;
 }
 
 .rail-mark {
