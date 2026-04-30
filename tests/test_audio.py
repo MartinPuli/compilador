@@ -75,3 +75,34 @@ def test_decode_simple_letter_dot_dash():
     assert result.morse == ".-"
     # WPM detection is approximate; what matters is the `.`/`-` classification
     assert 12 <= result.detected_wpm <= 28
+
+
+def test_decode_word_sos():
+    samples, sr = synth_morse_wav("... --- ...", wpm=15)
+    result = decode_audio_to_morse(samples, sr)
+    assert result.morse == "... --- ..."
+
+
+def test_decode_two_words_with_triple_space():
+    samples, sr = synth_morse_wav(".-   -...", wpm=20)
+    result = decode_audio_to_morse(samples, sr)
+    assert ".-" in result.morse and "-..." in result.morse
+    assert "   " in result.morse
+
+
+def test_decode_handles_explicit_wpm_override():
+    samples, sr = synth_morse_wav(".-", wpm=20)
+    result = decode_audio_to_morse(samples, sr, wpm=20)
+    assert result.morse == ".-"
+    assert result.detected_wpm == 20.0
+
+
+def test_decode_silent_raises():
+    silent = np.zeros(16000, dtype=np.float32)
+    with pytest.raises(AudioDecodeError):
+        decode_audio_to_morse(silent, 16000)
+
+
+def test_decode_empty_raises():
+    with pytest.raises(AudioDecodeError):
+        decode_audio_to_morse(np.array([], dtype=np.float32), 16000)
