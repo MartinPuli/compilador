@@ -1,7 +1,7 @@
 # MorseLang
 
 > Un lenguaje de programación cuyo **código fuente se escribe en código Morse**.
-> TP integrador de Lenguajes Formales y Compiladores — Python 3.12, todo a mano, **74 tests**.
+> TP integrador de Lenguajes Formales y Compiladores — Python 3.12, todo a mano, **77 tests**.
 
 🌐 **Demo live:** [compilador-swart.vercel.app](https://compilador-swart.vercel.app/)
 📦 **Repo:** [github.com/MartinPuli/compilador](https://github.com/MartinPuli/compilador)
@@ -104,7 +104,7 @@ Alternativa rápida (más simple, menos pulida): `streamlit run studio/app.py`.
 pytest -q
 ```
 
-74 tests cubriendo lexer, parser, semántico, intérprete, TTS, decoder de audio, AST y CLI.
+77 tests cubriendo lexer, parser, semántico, intérprete, TTS, decoder de audio, AST y CLI.
 
 ---
 
@@ -166,7 +166,7 @@ web/              # MORSE.LAB — UI custom (Flask + HTML/CSS/JS)
 studio/           # alternativa Streamlit (legacy, más simple)
 
 examples/         # programas de ejemplo (.morse)
-tests/            # pytest (74 tests)
+tests/            # pytest (77 tests)
 docs/             # informe.md + uso_ia.md + tp_resources.py + specs/plans
 .claude/skills/morselang-compiler/SKILL.md   # skill de Claude
 main.py           # CLI
@@ -271,7 +271,7 @@ La consigna del TP permite explícitamente usar IA siempre que esté documentada
 ## Defensa del TP
 
 1. Mostrar el repo y `git log` (los commits cuentan la historia: lexer → tokens → parser → semántico → intérprete → TTS → audio decoder → UI).
-2. `pytest -q` → mostrar los **74 tests verdes**.
+2. `pytest -q` → mostrar los **77 tests verdes**.
 3. Abrir MORSE.LAB → recorrer **Inspector** mostrando cada Parte del TP en vivo.
 4. Cargar `factorial.morse` en el Editor → ejecutar → mostrar `120` y la tabla de símbolos.
 5. Generar audio: `python main.py examples/factorial.morse --tts` → reproducir `output.mp3`.

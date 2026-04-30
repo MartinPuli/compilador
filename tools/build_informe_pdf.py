@@ -434,7 +434,7 @@ hr {{
     <div class="cover-meta">
       <span class="lead">Informe del TP integrador</span>
       Lenguajes Formales y Compiladores<br/>
-      Python 3.12 · 74 tests · todo a mano
+      Python 3.12 · 77 tests · todo a mano
     </div>
   </div>
 

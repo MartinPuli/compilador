@@ -1,7 +1,7 @@
 # TP Integrador — Compilador MorseLang
 
 **Lenguaje:** MorseLang — lenguaje imperativo cuyo código fuente se escribe en código Morse.
-**Implementación:** Python 3.12, todo a mano (sin parser generators), 74 tests automatizados.
+**Implementación:** Python 3.12, todo a mano (sin parser generators), 77 tests automatizados.
 
 > Para una vista interactiva de cada Parte, abrir el Studio y usar la pestaña **TP Inspector**:
 > `streamlit run studio/app.py`.
