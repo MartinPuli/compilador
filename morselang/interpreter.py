@@ -36,9 +36,11 @@ class Interpreter:
         self._env = SymbolTable()
         self.output: list[str] = []
 
-    def execute(self, program: Programa) -> None:
+    def execute(self, program: Programa, on_step=None) -> None:
         for stmt in program.statements:
             self._stmt(stmt)
+            if on_step is not None:
+                on_step(stmt, self._env.snapshot())
 
     def _stmt(self, s: Stmt) -> None:
         if isinstance(s, Declaracion):
