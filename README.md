@@ -3,6 +3,10 @@
 > Un lenguaje de programación cuyo **código fuente se escribe en código Morse**.
 > TP integrador de Lenguajes Formales y Compiladores — Python 3.12, todo a mano, **74 tests**.
 
+🌐 **Demo live:** [compilador-swart.vercel.app](https://compilador-swart.vercel.app/)
+📦 **Repo:** [github.com/MartinPuli/compilador](https://github.com/MartinPuli/compilador)
+📄 **Informe PDF:** [`docs/informe.pdf`](docs/informe.pdf)
+
 ```
 .... --- .-.. .-   --   ..- -. -.. ---
    →   "HOLA MUNDO"
@@ -258,9 +262,9 @@ La consigna del TP permite explícitamente usar IA siempre que esté documentada
 | Errores detectados | ✓ | 5 casos documentados |
 | Correcciones manuales | ✓ | cada uno con fix detallado |
 | **Entregables** | | |
-| Informe en PDF | ⚠ | está en markdown (`docs/informe.md`) — convertir con `pandoc docs/informe.md -o informe.pdf` |
+| Informe en PDF | ✓ | `docs/informe.pdf` (regenerable con `py -3.12 tools/build_informe_pdf.py`) |
 | Código fuente | ✓ | repo completo |
-| Ejemplos de ejecución | ✓ | `examples/*.morse` + screenshots/Studio |
+| Ejemplos de ejecución | ✓ | `examples/*.morse` + screenshots/Studio + demo en https://compilador-swart.vercel.app/ |
 
 ---
 
