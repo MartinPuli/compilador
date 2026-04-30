@@ -14,9 +14,23 @@ MorseLang es un lenguaje imperativo de propósito general (nivel intermedio). So
 
 ### Alfabeto
 
+En lenguajes formales, el **alfabeto** Σ es el conjunto de *símbolos atómicos* que pueden aparecer en un programa fuente — los caracteres que el lexer ve directamente en el archivo. Para MorseLang:
+
 ```
 Σ = { '.', '-', ' ', '/', '\n', '"' }
 ```
+
+Sólo seis caracteres. Las letras `A`, `B`, …, `Z` y los dígitos `0`–`9` **no están en el alfabeto** porque no aparecen literalmente en un archivo `.morse`: emergen recién cuando el lexer decodifica secuencias Morse (`.-` se vuelve `A`, `-----` se vuelve `0`, etc.). Por eso el alfabeto es tan chico — todo lo demás se construye combinando puntos y rayas.
+
+Cada símbolo del alfabeto cumple un rol específico:
+
+| Símbolo | Rol |
+|---|---|
+| `.` `-` | Componentes atómicos de cada letra/dígito Morse. |
+| ` ` (un espacio) | Separa letras dentro de una misma palabra Morse. |
+| `   ` (tres espacios) o `/` | Separa palabras / tokens. |
+| `\n` (salto de línea) | Termina una sentencia. |
+| `"` | Delimita literales de texto (su contenido también es Morse). |
 
 ### Tokens
 
@@ -64,6 +78,43 @@ sentencia ⇒ declaracion
 ### Estrategia
 
 Dos pasos: (1) decodificación Morse → texto, (2) clasificación del texto en tokens. La separación mantiene el AFD de la primera fase pequeño y testeable.
+
+### Cómo se reconoce un programa Morse
+
+El lexer no intenta reconocer las palabras del lenguaje directamente sobre los puntos y rayas — eso explotaría la cantidad de estados del autómata. En cambio funciona en dos pasos sobre el mismo stream de entrada:
+
+**Paso 1 — Decodificar Morse → texto plano**
+
+Recorre el archivo y agrupa caracteres usando los separadores definidos en el alfabeto:
+
+- Un espacio dentro de una palabra Morse: separa **letras**.
+- Tres espacios o `/`: separan **tokens** (palabras enteras del lenguaje).
+- Salto de línea: separa **sentencias**.
+- Comillas: delimitan un **literal de texto** (su contenido se decodifica igual).
+
+Cada secuencia de letras Morse (separadas por un solo espacio) se busca en una tabla `{ '.-': 'A', '-...': 'B', ..., '-----': '0', ..., '----.': '9' }` y se concatena en una palabra ASCII.
+
+Para la entrada `...- .- .-. / -..- / .- ... .. --. / .---- -----` el paso 1 produce:
+
+```
+VAR  X  ASIG  10
+```
+
+**Paso 2 — Clasificar palabras en tokens tipados**
+
+Sobre el texto decodificado, cada palabra ASCII se reconoce contra una tabla de keywords / operadores y una expresión regular para identificadores y números:
+
+| Palabra decodificada | Token emitido |
+|---|---|
+| `VAR`, `MOSTRAR`, `SI`, `SINO`, `MIENTRAS`, `FIN`, `VERDADERO`, `FALSO` | KEYWORD del tipo correspondiente |
+| `MAS`, `MENOS`, `POR`, `DIV`, `IGUAL`, `DIST`, `MEN`, `MAY`, `ASIG` | OPERATOR del tipo correspondiente |
+| Cualquier secuencia `[A-Z]+` no reservada | IDENT |
+| Cualquier secuencia `[0-9]+` | NUMBER |
+| Contenido entre `"..."` (decodificado) | STRING |
+
+Los strings preservan espacios internos cuando dentro de las comillas hay tres espacios o `/` entre palabras Morse — eso permite escribir literales como `"HOLA MUNDO"` con un espacio real entre las dos palabras.
+
+Salida final: una secuencia plana de tokens tipados con su línea de origen, lista para que el parser construya el AST.
 
 ### Expresiones regulares (sobre el texto decodificado)
 
@@ -194,4 +245,51 @@ streamlit run studio/app.py
 
 ## 7. Uso de IA
 
-Ver `docs/uso_ia.md`.
+La consigna del TP permite explícitamente el uso de IA siempre que esté documentado. Esta sección resume lo más relevante; el detalle completo (prompts textuales, lecciones, decisiones descartadas) vive en `docs/uso_ia.md`.
+
+### Herramienta
+
+**Claude Code (Anthropic) — modelo Opus 4.7** con contexto de 1M tokens, en VS Code. Sub-agentes Haiku 4.5 despachados desde el agente principal para tareas mecánicas (correr `pytest`, hacer commits) con prompts cerrados, evitando contaminar el contexto principal. **MCP Playwright** para verificación visual end-to-end del frontend.
+
+No se usaron otras herramientas (ChatGPT, Copilot, etc.).
+
+### Workflow
+
+El desarrollo siguió un patrón disciplinado:
+
+1. **Brainstorming** del lenguaje y la arquitectura (preguntas guiadas, no implementación).
+2. **Spec** en markdown con todas las decisiones (alfabeto, gramática, alcance, riesgos).
+3. **Plan de implementación** TDD detallado con todo el código por adelantado, en 13 tareas bite-sized.
+4. **Ejecución por subagentes** — uno por tarea, con review automático entre tareas.
+5. **Code review final** sobre el branch completo.
+6. **Verificación visual** con Playwright (boot del server, navegación, screenshots por vista).
+
+### Prompts clave (selección)
+
+> *"Una idea innovadora quiero"* → arrancó la exploración, derivó en tres opciones (PromptLang / DanzaLang / FinLang) que después se descartaron.
+
+> *"En morse podra ser? y que este conectado a la api de elevenlabs y con eso traduzca a algo pa poder programar"* → idea final: lenguaje fuente en código Morse + ElevenLabs como cierre vistoso de la fase de síntesis.
+
+> *"ME GUSTARI9A QUE LE HAGAS UNA VISUAL PARA PROBARLO, Y QUE PEUDAS GRABAR UN AUDIO QEU ENTIENDA EL CODIGO MORSE Y LOI PONGA EN CODIGO"* → MORSE.LAB con cuatro vistas + decoder de audio DSP-puro.
+
+### Componentes generados con asistencia
+
+Todo el código del compilador (`morselang/`), la UI web (`web/`), los tests (78 en total), los ejemplos en Morse, el script que renderiza este PDF y la documentación. Todo pasó por revisión humana antes del commit.
+
+### Errores detectados en respuestas de IA y correcciones
+
+| # | Error | Corrección |
+|---|---|---|
+| 1 | Mensaje de error semántico para tipo aritmético no contenía la palabra "tipo", rompiendo un test. | Se prependió `"tipo incompatible — "` en `morselang/semantic.py:_binop`. |
+| 2 | El lexer colapsaba espacios dentro de strings (`"HOLA MUNDO"` → `"HOLAMUNDO"`), violando la regla `texto` de la gramática. | Se reescribió `_emit_string` para separar el contenido por triple-espacio o `/` y unirlo con un espacio real. |
+| 3 | El primer test del decoder de audio asertaba un rango muy estrecho de WPM. La ventana RMS de 10 ms inflaba la duración detectada. | Se redujo la ventana a 3 ms y se relajó la tolerancia del test. |
+| 4 | El layout inicial de MORSE.LAB tenía el contenido principal aplastado a 56 px porque el CSS grid asignaba columnas en orden de aparición. | Se reescribió `body` con `grid-template-areas` para asignar columnas por nombre. Detectado con Playwright. |
+| 5 | Una rama del parser para bloques anidados consumía un `FIN` extra. | Se ajustó `_parse_block` con un set explícito de `stop_tokens` y se trazaron los tokens manualmente. |
+
+### Lecciones aprendidas
+
+- **Plans con código completo > prompts iterativos.** Armar el plan con todo el código y los tests por adelantado evita el ping-pong típico con la IA.
+- **Sub-agentes para tareas mecánicas.** Haiku con instrucciones cerradas es perfecto para correr pytest o commitear, sin contaminar el contexto principal.
+- **TDD disciplinado.** Cada tarea empieza con un test que falla. Detectó varios casos en que la IA hubiera entregado código que no satisfacía el requisito exacto.
+- **Verificación visual con Playwright.** El bug del layout no era detectable con tests unitarios — sólo el screenshot lo evidenció.
+- **El reviewer agresivo paga.** El code reviewer encontró 6 issues en una pasada; 2 reales se arreglaron antes del merge.
