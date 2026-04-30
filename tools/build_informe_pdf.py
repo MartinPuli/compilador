@@ -205,7 +205,7 @@ body {{
 
 @page body-page {{
   size: A4;
-  margin: 18mm 22mm 22mm 22mm;
+  margin: 16mm 14mm 18mm 14mm;
   @bottom-left {{
     content: 'MorseLang · Informe';
     font-family: 'JetBrains Mono', monospace;
@@ -224,7 +224,6 @@ body {{
 
 article {{
   page: body-page;
-  padding: 18mm 22mm 14mm;
 }}
 
 h1 {{
