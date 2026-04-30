@@ -52,19 +52,19 @@ def _wrap_html(body_html: str) -> str:
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=JetBrains+Mono:wght@300;400;500;700&display=swap">
 <style>
 :root {{
-  /* Dark CRT phosphor — same palette as the live site,
-     adapted for PDF (slightly less contrast so on-screen reading
-     is comfortable and code blocks stay legible). */
-  --paper:    #0c0a08;
-  --paper-2:  #14110d;
-  --ink:      #f4ede0;
-  --ink-dim:  #c8bba6;
+  /* Print-friendly cream paper with the website's amber accent system.
+     The amber pulls from the same hue family (darkened to ~#b56a00 so
+     it stays legible on cream and prints well). */
+  --paper:    #fbf6e9;
+  --paper-2:  #f5edd8;
+  --ink:      #1f1a14;
+  --ink-dim:  #4a3c2a;
   --ink-faint:#8a7d68;
-  --amber:    #ff9500;
-  --amber-2:  #ffb04a;
-  --line:     rgba(255, 149, 0, 0.32);
-  --line-soft:rgba(255, 149, 0, 0.14);
-  --code-bg:  #16130d;
+  --amber:    #b56a00;
+  --amber-2:  #ff9500;
+  --line:     #c9b48b;
+  --line-soft:#e4d6bb;
+  --code-bg:  #f5edd8;
 }}
 
 @page {{
@@ -116,7 +116,7 @@ body {{
   border: 1px solid var(--line);
   padding: 6pt 18pt;
   border-radius: 999px;
-  background: rgba(255, 149, 0, 0.06);
+  background: rgba(181, 106, 0, 0.06);
 }}
 
 .cover-mid {{
@@ -181,6 +181,16 @@ body {{
   color: var(--amber);
   display: block;
   margin-bottom: 4pt;
+}}
+
+.cover-authors {{
+  display: inline-block;
+  margin-top: 4pt;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 13pt;
+  color: var(--ink);
+  letter-spacing: 0.01em;
 }}
 
 .cover-foot {{
@@ -375,13 +385,13 @@ th, td {{
 }}
 
 th {{
-  background: rgba(255, 149, 0, 0.10);
+  background: rgba(181, 106, 0, 0.10);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
   font-size: 8.5pt;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--amber);
+  color: var(--ink);
 }}
 
 td code, th code {{ font-size: 8.5pt; padding: 0 3pt; }}
@@ -393,7 +403,7 @@ blockquote {{
   font-family: 'Fraunces', serif;
   font-style: italic;
   margin: 9pt 0 12pt;
-  background: rgba(255, 149, 0, 0.04);
+  background: rgba(245, 237, 216, 0.6);
 }}
 
 hr {{
@@ -434,7 +444,7 @@ hr {{
     <div class="cover-meta">
       <span class="lead">Informe del TP integrador</span>
       Lenguajes Formales y Compiladores<br/>
-      Python 3.12 · 77 tests · todo a mano
+      <span class="cover-authors">Martín Ezequiel Pulitano &amp; Nicolás Silva</span>
     </div>
   </div>
 
