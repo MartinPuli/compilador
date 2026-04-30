@@ -52,16 +52,19 @@ def _wrap_html(body_html: str) -> str:
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=JetBrains+Mono:wght@300;400;500;700&display=swap">
 <style>
 :root {{
-  --paper:    #fbf6e9;
-  --paper-2:  #f5edd8;
-  --ink:      #1f1a14;
-  --ink-dim:  #4a3c2a;
+  /* Dark CRT phosphor — same palette as the live site,
+     adapted for PDF (slightly less contrast so on-screen reading
+     is comfortable and code blocks stay legible). */
+  --paper:    #0c0a08;
+  --paper-2:  #14110d;
+  --ink:      #f4ede0;
+  --ink-dim:  #c8bba6;
   --ink-faint:#8a7d68;
-  --amber:    #b56a00;
-  --amber-2:  #ff9500;
-  --line:     #c9b48b;
-  --line-soft:#e4d6bb;
-  --code-bg:  #f5edd8;
+  --amber:    #ff9500;
+  --amber-2:  #ffb04a;
+  --line:     rgba(255, 149, 0, 0.32);
+  --line-soft:rgba(255, 149, 0, 0.14);
+  --code-bg:  #16130d;
 }}
 
 @page {{
@@ -100,7 +103,7 @@ body {{
   position: relative;
   border-top: 6px solid var(--amber);
   background:
-    radial-gradient(60% 50% at 50% 35%, rgba(255, 149, 0, 0.06), transparent 70%),
+    radial-gradient(70% 55% at 50% 35%, rgba(255, 149, 0, 0.14), transparent 70%),
     var(--paper);
 }}
 
@@ -113,7 +116,7 @@ body {{
   border: 1px solid var(--line);
   padding: 6pt 18pt;
   border-radius: 999px;
-  background: rgba(245, 237, 216, 0.4);
+  background: rgba(255, 149, 0, 0.06);
 }}
 
 .cover-mid {{
@@ -140,6 +143,9 @@ body {{
   letter-spacing: -0.02em;
   margin: 0;
   color: var(--ink);
+  text-shadow:
+    0 0 18pt rgba(255, 149, 0, 0.18),
+    0 0 36pt rgba(255, 149, 0, 0.10);
 }}
 
 .cover-title .dot {{
@@ -272,6 +278,7 @@ h2::before {{
   color: var(--amber);
   line-height: 1;
   letter-spacing: -0.02em;
+  text-shadow: 0 0 14pt rgba(255, 149, 0, 0.45);
 }}
 
 h2 em {{
@@ -367,25 +374,25 @@ th, td {{
 }}
 
 th {{
-  background: rgba(181, 106, 0, 0.10);
+  background: rgba(255, 149, 0, 0.10);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
   font-size: 8.5pt;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: var(--amber);
 }}
 
 td code, th code {{ font-size: 8.5pt; padding: 0 3pt; }}
 
 blockquote {{
   border-left: 3px solid var(--amber);
-  padding: 4pt 14pt;
+  padding: 6pt 14pt;
   color: var(--ink-dim);
   font-family: 'Fraunces', serif;
   font-style: italic;
   margin: 9pt 0 12pt;
-  background: rgba(245, 237, 216, 0.5);
+  background: rgba(255, 149, 0, 0.04);
 }}
 
 hr {{
