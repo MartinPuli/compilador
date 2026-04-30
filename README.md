@@ -171,6 +171,46 @@ requirements.txt
 
 ---
 
+## Deploy a Vercel
+
+El repo ya está configurado para deploy serverless en Vercel (archivos `api/index.py`, `api/requirements.txt`, `vercel.json`). Tres formas:
+
+### Opción 1 — Web (más simple)
+
+1. Crear cuenta en https://vercel.com con tu GitHub.
+2. **New Project** → **Import** → seleccionar el repo `MartinPuli/compilador`.
+3. Vercel detecta automáticamente Python (no toca nada).
+4. (Opcional) en **Environment Variables** agregar `ELEVENLABS_API_KEY` si querés TTS — el server web no lo usa, pero se queda guardada por las dudas.
+5. **Deploy**. Te da una URL del estilo `compilador-xxxx.vercel.app`.
+
+### Opción 2 — CLI
+
+```bash
+npm i -g vercel
+vercel login
+vercel              # primer deploy: te pregunta nombre, scope, etc.
+vercel --prod       # promueve a producción
+```
+
+### Opción 3 — Conectar y auto-deploy
+
+Después de la Opción 1, cada `git push` a `main` dispara un deploy automático en Vercel.
+
+**Limitaciones del deploy serverless:**
+
+- **Cold start** ~5-10s la primera request (después queda caliente unos minutos).
+- **Tamaño:** numpy + scipy son grandes, el deploy entra apretado en el límite de 50MB de Vercel free. Si falla, hay que reescribir `morselang/audio.py` para usar solo numpy (eliminar `scipy.signal.convolve` y `scipy.io.wavfile`).
+- **TTS no funciona en serverless** — la integración con ElevenLabs solo está en el CLI (`python main.py archivo.morse --tts`), no en el web server. Mover una request de TTS a Vercel funcionaría pero el audio resultante puede pasar el límite de respuesta serverless.
+- **El Studio de Streamlit no se deploya** acá — Streamlit necesita un server persistente, no es WSGI. Si querés deploy de la UI Streamlit, usar Render.com o Streamlit Cloud.
+
+**Alternativas si Vercel da problemas:**
+
+- **Render.com** (gratis, mejor para Flask): conectar repo → "Web Service" → Build Command: `pip install -r requirements.txt` → Start: `gunicorn web.server:app`.
+- **Railway.app**: similar a Render, también gratis con créditos.
+- **Fly.io**: gratis con Dockerfile.
+
+---
+
 ## Defensa del TP
 
 1. Mostrar el repo y `git log` (los commits cuentan la historia: lexer → tokens → parser → semántico → intérprete → TTS → audio decoder → UI).

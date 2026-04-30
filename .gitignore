@@ -22,3 +22,9 @@ TP_Compilador_Asistido_por_IA*.pdf
 
 # Audio test fixtures (generated on the fly)
 *.wav
+
+# Internal workflow artifacts (specs / plans / agent notes)
+docs/superpowers/
+
+# Vercel
+.vercel/
