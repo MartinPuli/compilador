@@ -211,6 +211,59 @@ Después de la Opción 1, cada `git push` a `main` dispara un deploy automático
 
 ---
 
+## Uso de IA en el desarrollo (Parte 7 del TP)
+
+La consigna del TP permite explícitamente usar IA siempre que esté documentada. El detalle completo (prompts, errores detectados, correcciones manuales) está en [`docs/uso_ia.md`](docs/uso_ia.md). Resumen:
+
+- **Herramienta:** Claude Code (Anthropic) — modelo Opus 4.7 con contexto de 1M tokens, en VS Code. Sub-agentes Haiku 4.5 para tareas mecánicas (correr tests, commitear). MCP Playwright para verificación visual del frontend.
+- **Workflow:** brainstorming → spec en markdown → plan TDD detallado con todo el código → ejecución task-por-task con review automático → code review final. Los specs y plans del workflow están en `docs/superpowers/`.
+- **Componentes generados con asistencia:** todo el código del compilador (`morselang/`), el frontend web (`web/`), los tests (74 en total), los ejemplos en Morse y la documentación. Todo pasó por revisión humana antes del commit.
+- **Errores corregidos a mano:** mensaje de error semántico para tipo incompatible (no contenía la palabra "tipo"), lexer colapsando espacios dentro de strings, parámetros del DSP del decoder de audio mal calibrados, layout grid del frontend mal asignado. Cada uno con su explicación y fix en `docs/uso_ia.md`.
+- **Patrón clave:** el plan tenía el **código completo** de cada tarea antes de empezar a programar. Eso evitó el "ping-pong" típico con la IA y produjo commits limpios y reversibles.
+
+---
+
+## Cumplimiento de la consigna del TP
+
+| Parte del TP | Estado | Dónde |
+|---|---|---|
+| 1 — Definición del lenguaje | ✓ | `docs/informe.md` §1 + Studio TP Inspector tab 01 |
+| Alfabeto | ✓ | informe + `tp_resources.py:ALFABETO` |
+| Tokens | ✓ | `morselang/tokens.py` + tabla en informe |
+| Gramática EBNF | ✓ | `tp_resources.py:EBNF` + informe |
+| Ejemplo de derivación | ✓ | `tp_resources.py:DERIVACION` + informe |
+| 2 — Análisis léxico | ✓ | `morselang/lexer.py`, `morselang/morse.py` |
+| Lista de tokens con regex | ✓ | tabla en `docs/informe.md` §2 |
+| Autómata (AFD) | ✓ | ASCII art en informe + Studio Inspector tab 02 |
+| Implementación | ✓ | `morselang/lexer.py` (a mano, sin Flex/PLY) |
+| Ejemplo de tokens | ✓ | `python main.py X.morse --tokens` o trace en vivo en Studio |
+| 3 — Análisis sintáctico | ✓ | `morselang/parser.py`, `morselang/ast_nodes.py` |
+| Tipo y justificación | ✓ | recursivo descendente LL(1) — explicado en informe §3 |
+| Implementación | ✓ | `morselang/parser.py` (a mano) |
+| Ejemplo con árbol | ✓ | `--ast` o vista AST en vivo en Studio |
+| 4 — Tabla de símbolos | ✓ | `morselang/symbol_table.py` |
+| Información almacenada | ✓ | tipo, valor, línea de declaración |
+| Inserción y consulta | ✓ | `declarar` / `asignar` / `consultar` / `existe` / `snapshot` |
+| Ejemplo de uso | ✓ | snapshot paso a paso en Studio Inspector tab 04 |
+| 5 — Análisis semántico | ✓ | `morselang/semantic.py` |
+| Reglas | ✓ | 7 reglas documentadas en informe §5 |
+| Tipos de errores | ✓ | tabla con mensajes exactos |
+| Ejemplos | ✓ | `examples/error_*.morse` + galería en Studio Inspector tab 05 |
+| 6 — Fase de síntesis (a elección) | ✓ | **Intérprete del lenguaje** (tree-walking) |
+| Implementación | ✓ | `morselang/interpreter.py` + `morselang/tts.py` (extra: ElevenLabs) |
+| 7 — Uso de IA | ✓ | `docs/uso_ia.md` |
+| Herramientas | ✓ | Claude Code Opus 4.7 |
+| Prompts relevantes | ✓ | sección 3 de `uso_ia.md` con citas textuales |
+| Componentes generados | ✓ | tabla completa |
+| Errores detectados | ✓ | 5 casos documentados |
+| Correcciones manuales | ✓ | cada uno con fix detallado |
+| **Entregables** | | |
+| Informe en PDF | ⚠ | está en markdown (`docs/informe.md`) — convertir con `pandoc docs/informe.md -o informe.pdf` |
+| Código fuente | ✓ | repo completo |
+| Ejemplos de ejecución | ✓ | `examples/*.morse` + screenshots/Studio |
+
+---
+
 ## Defensa del TP
 
 1. Mostrar el repo y `git log` (los commits cuentan la historia: lexer → tokens → parser → semántico → intérprete → TTS → audio decoder → UI).
