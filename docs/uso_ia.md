@@ -32,11 +32,11 @@
 ## Errores detectados en respuestas de IA
 
 - Mensaje de error semántico para tipo incompatible aritmético no contenía la palabra "tipo", lo que rompía un test que la asertaba. Se corrigió prependiendo "tipo incompatible — " al mensaje.
-- Caso particular del lexer cuando un string contiene espacios múltiples: `decode_word` colapsa todo, así que "HOLA MUNDO" no se puede representar con un espacio real entre palabras dentro de un string. Se documentó la limitación y los ejemplos usan una sola palabra ("HOLAMUNDO").
+- Primera versión del lexer colapsaba los espacios dentro de un string (decodificaba todo el contenido como una sola palabra), lo que rompía la regla `texto ::= '"' { letra | digito | espacio_intra } '"'` de la gramática. Se corrigió: `_emit_string` ahora separa el contenido por triple-espacio o `/` (igual que entre tokens normales), decodifica cada chunk como palabra y los une con un espacio real. Test agregado: `test_lex_string_preserves_internal_spaces`.
 - (Anotar otros errores a medida que aparezcan al revisar el TP).
 
 ## Correcciones realizadas manualmente
 
 - Ajuste del mensaje de error en `morselang/semantic.py:_binop` para satisfacer el test de tipo incompatible.
-- Ajuste del ejemplo `hola.morse` y su test asociado para usar "HOLAMUNDO" sin espacio interno.
+- Reescritura de `_emit_string` en `morselang/lexer.py` para preservar espacios entre palabras dentro de un string literal, alineando la implementación con la gramática.
 - (Completar a medida que se revisa el código contra el informe).

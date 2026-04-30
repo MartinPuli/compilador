@@ -8,7 +8,6 @@ classified into a TokenType (keyword / operator / number / identifier).
 """
 
 import re
-from typing import Optional
 
 from morselang.morse import decode_word, MorseError
 from morselang.tokens import KEYWORDS, Token, TokenType
@@ -86,15 +85,22 @@ class Lexer:
         self._tokens.append(self._classify(text, line_no))
 
     def _emit_string(self, raw: str, line_no: int) -> None:
-        # raw is '"... morse ..."'; decode the inside
-        inside = raw[1:-1]
+        # raw is '"... morse ..."'; decode the inside word by word.
+        # Words inside a string are separated by `/` or 3+ spaces; letters
+        # within a word by single spaces. This lets a literal contain real
+        # spaces (e.g. "HOLA MUNDO") instead of being collapsed into one word.
+        inside = raw[1:-1].strip()
+        if not inside:
+            self._tokens.append(Token(TokenType.STRING, "", line_no))
+            return
+        word_chunks = [w for w in _GROUP_SEP_RE.split(inside) if w.strip()]
         try:
-            text = decode_word(inside) if inside.strip() else ""
+            words = [decode_word(w) for w in word_chunks]
         except MorseError as exc:
             raise LexerError(
                 f"Línea {line_no}: contenido de texto inválido — {exc}"
             ) from exc
-        self._tokens.append(Token(TokenType.STRING, text, line_no))
+        self._tokens.append(Token(TokenType.STRING, " ".join(words), line_no))
 
     def _classify(self, text: str, line_no: int) -> Token:
         if text in KEYWORDS:

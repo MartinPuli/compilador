@@ -20,7 +20,7 @@ def run(example: str, *extra_args: str) -> subprocess.CompletedProcess:
 def test_hola_runs_and_prints():
     result = run("hola.morse")
     assert result.returncode == 0, result.stderr
-    assert "HOLAMUNDO" in result.stdout
+    assert "HOLA MUNDO" in result.stdout
 
 
 def test_factorial_outputs_120():

@@ -58,3 +58,12 @@ def test_lex_unterminated_string_raises():
     source = '-- --- ... - .-. .- .-. / ".... --- .-.. .-'
     with pytest.raises(LexerError):
         Lexer(source).tokenize()
+
+
+def test_lex_string_preserves_internal_spaces():
+    # MOSTRAR "HOLA MUNDO"  →  triple-space between words inside the string
+    source = '-- --- ... - .-. .- .-. / ".... --- .-.. .-   -- ..- -. -.. ---"'
+    tokens = Lexer(source).tokenize()
+    string_token = tokens[1]
+    assert string_token.type == TokenType.STRING
+    assert string_token.lexeme == "HOLA MUNDO"
