@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=JetBrains+Mono:wght@300;400;500;700&display=swap">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='3' y='3' width='58' height='58' rx='8' fill='%230a0908' stroke='%23ff9500' stroke-width='2'/%3E%3Crect x='12' y='14' width='22' height='4' fill='%23ff9500'/%3E%3Crect x='12' y='22' width='22' height='4' fill='%23ff9500'/%3E%3Ccircle cx='14' cy='44' r='2.5' fill='%23ff9500'/%3E%3Crect x='20' y='42' width='14' height='4' fill='%23ff9500'/%3E%3Ccircle cx='40' cy='44' r='2.5' fill='%23ff9500'/%3E%3Ccircle cx='48' cy='44' r='2.5' fill='%23ff9500'/%3E%3Ccircle cx='52' cy='14' r='3' fill='%23ff9500'/%3E%3C/svg%3E">
 </head>
 <body>
   <div class="scanlines" aria-hidden="true"></div>
@@ -15,10 +16,22 @@
   <div class="phosphor-glow" aria-hidden="true"></div>
 
   <aside class="rail rail-left" aria-label="Navegación">
-    <div class="rail-mark">
-      <span class="rail-dot" data-pulse></span>
+    <a class="rail-mark" href="/" aria-label="MorseLab — inicio">
+      <svg class="logo-mark" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="3" y="3" width="58" height="58" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.35"/>
+        <!-- M : two dashes -->
+        <rect x="12" y="14" width="22" height="4" fill="currentColor"/>
+        <rect x="12" y="22" width="22" height="4" fill="currentColor"/>
+        <!-- L : dot dash dot dot -->
+        <circle cx="14" cy="44" r="2.5" fill="currentColor"/>
+        <rect x="20" y="42" width="14" height="4" fill="currentColor"/>
+        <circle cx="40" cy="44" r="2.5" fill="currentColor"/>
+        <circle cx="48" cy="44" r="2.5" fill="currentColor"/>
+        <!-- transmit blip -->
+        <circle class="logo-blip" cx="52" cy="14" r="3" fill="currentColor"/>
+      </svg>
       <span class="rail-label">M.LAB</span>
-    </div>
+    </a>
     <nav class="nav">
       <button class="nav-item is-active" data-view="editor">
         <span class="nav-num">01</span>
@@ -49,6 +62,19 @@
   </aside>
 
   <main class="stage">
+    <div class="hero-chips" aria-label="Enlaces del proyecto">
+      <a class="chip" href="https://github.com/MartinPuli/compilador" target="_blank" rel="noopener">
+        <span class="chip-glyph">⌥</span>
+        <span class="chip-label">REPO</span>
+        <span class="chip-arrow">↗</span>
+      </a>
+      <a class="chip chip-live" href="https://compilador-swart.vercel.app/" target="_blank" rel="noopener">
+        <span class="chip-pulse" aria-hidden="true"></span>
+        <span class="chip-label">LIVE</span>
+        <span class="chip-arrow">↗</span>
+      </a>
+    </div>
+
     <header class="masthead">
       <div class="mast-overline">
         <span class="dotline" aria-hidden="true"></span>
@@ -71,6 +97,13 @@
         <span>tts</span>
         <span class="op">/</span>
       </p>
+      <div class="mast-stamp">
+        <span>EST. 2026</span>
+        <span class="op">·</span>
+        <span>BUENOS AIRES</span>
+        <span class="op">·</span>
+        <span>v1.0</span>
+      </div>
     </header>
 
     <section class="view view-editor is-active" data-view="editor">
@@ -90,14 +123,17 @@
           <textarea id="source" class="source" spellcheck="false"
             placeholder="-- --- ... - .-. .- .-. / &quot;.... --- .-.. .-&quot;"></textarea>
           <div class="actions">
-            <button class="btn btn-primary" data-action="run">
+            <button class="btn btn-primary" data-action="run" title="Ctrl+Enter">
               <span class="bracket">[</span><span>Ejecutar</span><span class="bracket">]</span>
+              <kbd class="kbd">⌃↵</kbd>
             </button>
-            <button class="btn" data-action="tokens">
+            <button class="btn" data-action="tokens" title="Ctrl+T">
               <span class="bracket">[</span><span>Tokens</span><span class="bracket">]</span>
+              <kbd class="kbd">⌃T</kbd>
             </button>
-            <button class="btn" data-action="ast">
+            <button class="btn" data-action="ast" title="Ctrl+R">
               <span class="bracket">[</span><span>AST</span><span class="bracket">]</span>
+              <kbd class="kbd">⌃R</kbd>
             </button>
           </div>
         </div>

@@ -401,6 +401,25 @@
     };
   }
 
+  // ---------- keyboard shortcuts ----------
+
+  document.addEventListener('keydown', (e) => {
+    const editorActive = $$('.nav-item.is-active')[0]?.dataset.view === 'editor';
+    if (!editorActive) return;
+    if (!(e.ctrlKey || e.metaKey)) return;
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onAction('run');
+    } else if (e.key.toLowerCase() === 't') {
+      e.preventDefault();
+      onAction('tokens');
+    } else if (e.key.toLowerCase() === 'r') {
+      e.preventDefault();
+      onAction('ast');
+    }
+  });
+
   // ---------- boot ----------
 
   loadExamples();
