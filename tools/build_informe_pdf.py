@@ -202,9 +202,10 @@ body {{
 .cover-foot .op {{ color: var(--amber); margin: 0 8pt; }}
 
 .cover-mark {{
-  width: 56pt;
-  height: 56pt;
+  width: 70pt;
+  height: 70pt;
   color: var(--amber);
+  filter: drop-shadow(0 0 14pt rgba(255, 149, 0, 0.40));
 }}
 
 /* ===== BODY PAGES ===== */
@@ -420,15 +421,15 @@ hr {{
       <span class="op">·</span> tts
       <span class="op">/</span>
     </div>
-    <svg class="cover-mark" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-      <rect x="3" y="3" width="58" height="58" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.35"/>
-      <rect x="12" y="14" width="22" height="4" fill="currentColor"/>
-      <rect x="12" y="22" width="22" height="4" fill="currentColor"/>
-      <circle cx="14" cy="44" r="2.5" fill="currentColor"/>
-      <rect x="20" y="42" width="14" height="4" fill="currentColor"/>
-      <circle cx="40" cy="44" r="2.5" fill="currentColor"/>
-      <circle cx="48" cy="44" r="2.5" fill="currentColor"/>
-      <circle cx="52" cy="14" r="3" fill="currentColor"/>
+    <svg class="cover-mark" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="92" height="92" rx="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.30"/>
+      <!-- M : two bold amber dashes -->
+      <rect x="20" y="36" width="56" height="9" rx="2" fill="currentColor"/>
+      <rect x="20" y="52" width="56" height="9" rx="2" fill="currentColor"/>
+      <!-- transmit pulse, top-right -->
+      <circle cx="76" cy="16" r="4" fill="currentColor"/>
+      <circle cx="76" cy="16" r="9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-opacity="0.45"/>
+      <circle cx="76" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1" stroke-opacity="0.20"/>
     </svg>
     <div class="cover-meta">
       <span class="lead">Informe del TP integrador</span>
