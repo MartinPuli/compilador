@@ -641,6 +641,16 @@ body {
   text-shadow: 0 0 18px rgba(255, 149, 0, 0.5);
 }
 
+.audio-drop-hint {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  text-transform: lowercase;
+}
+
 .audio-name {
   margin-top: 14px;
   font-size: 12px;

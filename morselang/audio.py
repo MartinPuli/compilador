@@ -3,10 +3,16 @@
 Pipeline:
     samples -> mono+norm -> envelope (RMS) -> Otsu threshold -> run-length
     encoding -> auto-detect dot length -> classify pulses -> emit Morse string
+
+Also exposes `load_audio_bytes` which decodes any common audio format
+(wav, mp3, ogg, m4a, flac, ...) into a numpy array. Pure-Python wav is
+done via scipy; everything else delegates to pydub + a bundled ffmpeg
+binary (imageio-ffmpeg) so users don't have to install ffmpeg manually.
 """
 
 from __future__ import annotations
 
+import io
 from dataclasses import dataclass
 
 import numpy as np
@@ -15,6 +21,65 @@ from scipy.signal import convolve
 
 class AudioDecodeError(Exception):
     pass
+
+
+def load_audio_bytes(raw: bytes, *, filename: str | None = None) -> tuple[np.ndarray, int]:
+    """Decode raw audio bytes to (mono float32 samples in [-1, 1], sample_rate).
+
+    Tries fast path with scipy for WAV first; on failure (e.g. MP3) falls
+    back to pydub. Pydub needs an ffmpeg binary; we point it at the one
+    bundled by `imageio-ffmpeg` so no system install is required.
+    """
+    if not raw:
+        raise AudioDecodeError("Audio vacio")
+
+    # Fast path: scipy handles standard PCM WAV without spawning ffmpeg.
+    try:
+        from scipy.io import wavfile
+
+        sr, samples = wavfile.read(io.BytesIO(raw))
+        return _normalize_samples(samples), int(sr)
+    except Exception:
+        pass
+
+    # General path via pydub + bundled ffmpeg.
+    try:
+        from pydub import AudioSegment
+
+        try:
+            import imageio_ffmpeg
+
+            AudioSegment.converter = imageio_ffmpeg.get_ffmpeg_exe()
+        except Exception:
+            pass  # rely on a system-installed ffmpeg, if any
+
+        fmt = None
+        if filename and "." in filename:
+            fmt = filename.rsplit(".", 1)[-1].lower()
+        seg = AudioSegment.from_file(io.BytesIO(raw), format=fmt)
+        if seg.channels == 2:
+            seg = seg.set_channels(1)
+        samples = np.array(seg.get_array_of_samples())
+        return _normalize_samples(samples), int(seg.frame_rate)
+    except AudioDecodeError:
+        raise
+    except Exception as exc:  # pragma: no cover (depends on pydub install)
+        raise AudioDecodeError(
+            f"No se pudo decodificar el audio: {exc}. "
+            "Formatos soportados: wav, mp3, ogg, m4a, flac (mp3 y derivados "
+            "requieren `pydub` + `imageio-ffmpeg` instalados)."
+        ) from exc
+
+
+def _normalize_samples(samples: np.ndarray) -> np.ndarray:
+    """Convert any int/float sample buffer to mono float32 in [-1, 1]."""
+    arr = np.asarray(samples)
+    if arr.ndim == 2:
+        arr = arr.mean(axis=1)
+    if arr.dtype.kind in ("i", "u"):
+        max_val = float(np.iinfo(arr.dtype).max)
+        return (arr.astype(np.float32) / max_val) if max_val else arr.astype(np.float32)
+    return arr.astype(np.float32)
 
 
 @dataclass

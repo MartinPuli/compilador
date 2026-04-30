@@ -14,14 +14,11 @@ Serves a single-page app and a small JSON API that wraps the compiler:
 
 from __future__ import annotations
 
-import io
 from pathlib import Path
 
-import numpy as np
-from flask import Flask, jsonify, render_template, request, send_from_directory
-from scipy.io import wavfile
+from flask import Flask, jsonify, render_template, request
 
-from morselang.audio import AudioDecodeError, decode_audio_to_morse
+from morselang.audio import AudioDecodeError, decode_audio_to_morse, load_audio_bytes
 from morselang.morse import _MORSE_TO_CHAR, encode_letter
 from morselang.tokens import KEYWORDS
 from studio.components import compile_and_run, lex_only, parse_only
@@ -69,14 +66,9 @@ def api_decode_audio():
     f = request.files["audio"]
     raw = f.read()
     try:
-        sr, samples = wavfile.read(io.BytesIO(raw))
-    except Exception as exc:
-        return jsonify({"error": f"No se pudo leer el .wav: {exc}"}), 400
-    if samples.dtype.kind in ("i", "u"):
-        max_val = float(np.iinfo(samples.dtype).max)
-        samples = samples.astype(np.float32) / max_val
-    else:
-        samples = samples.astype(np.float32)
+        samples, sr = load_audio_bytes(raw, filename=f.filename)
+    except AudioDecodeError as exc:
+        return jsonify({"error": str(exc)}), 400
     wpm = request.form.get("wpm")
     wpm_val = float(wpm) if wpm and float(wpm) > 0 else None
     try:

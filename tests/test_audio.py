@@ -115,3 +115,65 @@ def test_decode_robust_to_moderate_noise():
     noisy = samples + noise
     result = decode_audio_to_morse(noisy, sr)
     assert result.morse == "... --- ..."
+
+
+def test_load_audio_bytes_handles_wav(tmp_path):
+    """`load_audio_bytes` should round-trip a synthesized WAV."""
+    from io import BytesIO
+
+    from scipy.io import wavfile
+
+    from morselang.audio import load_audio_bytes
+
+    samples, sr = synth_morse_wav(".-", wpm=20)
+    samples_i16 = (samples * 32767).astype(np.int16)
+    buf = BytesIO()
+    wavfile.write(buf, sr, samples_i16)
+    raw = buf.getvalue()
+
+    out_samples, out_sr = load_audio_bytes(raw, filename="sample.wav")
+    assert out_sr == sr
+    assert out_samples.shape == samples.shape
+    # decoded WAV bytes should still decode to ".-"
+    result = decode_audio_to_morse(out_samples, out_sr)
+    assert result.morse == ".-"
+
+
+def test_load_audio_bytes_handles_mp3(tmp_path):
+    """`load_audio_bytes` should also handle MP3 via pydub + imageio-ffmpeg.
+
+    Skipped if pydub or imageio-ffmpeg aren't installed in the environment.
+    """
+    pydub = pytest.importorskip("pydub")
+    pytest.importorskip("imageio_ffmpeg")
+    from io import BytesIO
+
+    from morselang.audio import load_audio_bytes
+
+    samples, sr = synth_morse_wav("... --- ...", wpm=15)
+    samples_i16 = (samples * 32767).astype(np.int16)
+    seg = pydub.AudioSegment(
+        samples_i16.tobytes(),
+        frame_rate=sr,
+        sample_width=2,
+        channels=1,
+    )
+    import imageio_ffmpeg
+
+    pydub.AudioSegment.converter = imageio_ffmpeg.get_ffmpeg_exe()
+    mp3_buf = BytesIO()
+    seg.export(mp3_buf, format="mp3", bitrate="64k")
+    raw = mp3_buf.getvalue()
+
+    out_samples, out_sr = load_audio_bytes(raw, filename="sample.mp3")
+    assert out_sr == sr
+    # mp3 is lossy, exact length / amplitudes vary slightly — just decode it
+    result = decode_audio_to_morse(out_samples, out_sr)
+    assert result.morse == "... --- ..."
+
+
+def test_load_audio_bytes_empty_raises():
+    from morselang.audio import AudioDecodeError, load_audio_bytes
+
+    with pytest.raises(AudioDecodeError):
+        load_audio_bytes(b"")

@@ -1,47 +1,40 @@
 """Audio → Morse page: record/upload audio, decode Morse, send to editor."""
 
-import io
-
-import numpy as np
 import streamlit as st
-from scipy.io import wavfile
 
-from morselang.audio import decode_audio_to_morse, AudioDecodeError
-
-
-def _load_wav(buffer: bytes) -> tuple[np.ndarray, int]:
-    sr, samples = wavfile.read(io.BytesIO(buffer))
-    if samples.dtype.kind in ("i", "u"):
-        max_val = float(np.iinfo(samples.dtype).max)
-        samples = samples.astype(np.float32) / max_val
-    else:
-        samples = samples.astype(np.float32)
-    return samples, sr
+from morselang.audio import decode_audio_to_morse, load_audio_bytes, AudioDecodeError
 
 
 def render() -> None:
     st.header("Audio → Morse")
     st.write(
-        "Grabá Morse desde el micrófono o subí un archivo `.wav`. "
-        "El decoder usa DSP puro (envolvente RMS + Otsu) para extraer la "
-        "secuencia `.` `-` y separadores."
+        "Grabá Morse desde el micrófono o subí un archivo de audio "
+        "(`.wav`, `.mp3`, `.ogg`, `.m4a`, `.flac`). El decoder usa DSP "
+        "puro (envolvente RMS + Otsu) para extraer la secuencia `.` `-` "
+        "y separadores."
     )
 
     col_rec, col_up = st.columns(2)
     audio_bytes = None
+    audio_filename = None
     with col_rec:
         st.subheader("Grabar")
         if hasattr(st, "audio_input"):
             rec = st.audio_input("Mic")
             if rec is not None:
                 audio_bytes = rec.getvalue()
+                audio_filename = "mic.wav"
         else:
             st.caption("Tu versión de Streamlit no tiene audio_input. Usá el upload.")
     with col_up:
-        st.subheader("Subir .wav")
-        up = st.file_uploader("Archivo de audio", type=["wav"])
+        st.subheader("Subir audio")
+        up = st.file_uploader(
+            "Archivo de audio",
+            type=["wav", "mp3", "ogg", "m4a", "flac"],
+        )
         if up is not None:
             audio_bytes = up.read()
+            audio_filename = up.name
 
     wpm_override = st.slider(
         "WPM (0 = autodetectar)", min_value=0, max_value=40, value=0, step=1
@@ -52,9 +45,9 @@ def render() -> None:
         return
 
     try:
-        samples, sr = _load_wav(audio_bytes)
-    except Exception as exc:
-        st.error(f"No se pudo leer el .wav: {exc}")
+        samples, sr = load_audio_bytes(audio_bytes, filename=audio_filename)
+    except AudioDecodeError as exc:
+        st.error(str(exc))
         return
 
     if st.button("Decodificar"):
