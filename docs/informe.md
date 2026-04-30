@@ -1,47 +1,196 @@
 # TP Integrador — Compilador MorseLang
 
+**Lenguaje:** MorseLang — lenguaje imperativo cuyo código fuente se escribe en código Morse.
+**Implementación:** Python 3.12, todo a mano (sin parser generators), 74 tests automatizados.
+
+> Para una vista interactiva de cada Parte, abrir el Studio y usar la pestaña **TP Inspector**:
+> `streamlit run studio/app.py`.
+
 ## 1. Definición del lenguaje
 
-- Descripción informal: lenguaje imperativo simple cuyo código fuente está escrito en código Morse.
-- Alfabeto: `{ '.', '-', ' ', '/', '\n', '"' }`.
-- Tokens: ver Parte 2.
-- Gramática (EBNF): ver `docs/superpowers/specs/2026-04-29-morselang-design.md` sección 2.4.
-- Ejemplo de derivación: ver spec sección 2.5.
+### Descripción informal
+
+MorseLang es un lenguaje imperativo de propósito general (nivel intermedio). Soporta variables tipadas (NUM, TEXTO, BOOL), aritmética entera, comparaciones, `SI/SINO`, `MIENTRAS` y `MOSTRAR`. Su rasgo distintivo es que el código fuente se escribe en código Morse: cada keyword, identificador, número y string es una secuencia de `.` y `-`.
+
+### Alfabeto
+
+```
+Σ = { '.', '-', ' ', '/', '\n', '"' }
+```
+
+### Tokens
+
+| Categoría | Ejemplos |
+|---|---|
+| Keyword | VAR, MOSTRAR, SI, SINO, MIENTRAS, FIN, VERDADERO, FALSO |
+| Operador (palabra Morse) | MAS, MENOS, POR, DIV, IGUAL, DIST, MEN, MAY, ASIG |
+| Identificador | A–Z, ≥1 letra |
+| Número | secuencia de dígitos Morse |
+| Texto | `"..."` con contenido Morse |
+| Estructural | NEWLINE, EOF |
+
+### Gramática (EBNF)
+
+```ebnf
+programa     ::= { sentencia } ;
+sentencia    ::= declaracion | asignacion | mostrar | si | mientras ;
+declaracion  ::= "VAR" identificador "ASIG" expresion "\n" ;
+asignacion   ::= identificador "ASIG" expresion "\n" ;
+mostrar      ::= "MOSTRAR" expresion "\n" ;
+si           ::= "SI" expresion "\n" { sentencia } [ "SINO" "\n" { sentencia } ] "FIN" "\n" ;
+mientras     ::= "MIENTRAS" expresion "\n" { sentencia } "FIN" "\n" ;
+
+expresion    ::= comparacion ;
+comparacion  ::= aritmetica [ ("IGUAL"|"DIST"|"MEN"|"MAY") aritmetica ] ;
+aritmetica   ::= termino { ("MAS"|"MENOS") termino } ;
+termino      ::= factor { ("POR"|"DIV") factor } ;
+factor       ::= numero | texto | "VERDADERO" | "FALSO" | identificador
+              | "(" expresion ")" ;
+```
+
+### Ejemplo de derivación
+
+Para `VAR X ASIG 10`:
+
+```
+sentencia ⇒ declaracion
+         ⇒ "VAR" identificador "ASIG" expresion
+         ⇒ "VAR" "X" "ASIG" numero
+         ⇒ "VAR" "X" "ASIG" "10"
+```
 
 ## 2. Análisis léxico
 
-- Lista de tokens y regex: ver spec sección 3.2.
-- Autómata (AFD): diagrama TBD (pendiente para el informe final en PDF).
-- Implementación: `morselang/lexer.py` (estrategia en dos pasos: decodificación Morse + clasificación).
-- Ejemplo de ejecución: `python main.py examples/hola.morse --tokens`.
+### Estrategia
+
+Dos pasos: (1) decodificación Morse → texto, (2) clasificación del texto en tokens. La separación mantiene el AFD de la primera fase pequeño y testeable.
+
+### Expresiones regulares (sobre el texto decodificado)
+
+| Token | Regex |
+|---|---|
+| KEYWORD/OPERATOR | `VAR\|MOSTRAR\|SI\|...\|ASIG` |
+| IDENT | `[A-Z]+` |
+| NUMBER | `[0-9]+` |
+| STRING | `"[^"]*"` |
+| NEWLINE | `\n` |
+
+### AFD del decodificador Morse
+
+```
+          ┌────────┐
+   start ─▶│   S0   │── '.' or '-' ──▶┐
+          └────────┘                  ▼
+                                   ┌────────┐
+                                   │   S1   │── '.' or '-' ──▶ S1
+                                   │ accum  │
+                                   └────────┘
+                                   │  ' '   │  '/' / '\n' / '"'
+                                   ▼         ▼
+                              emit letter   emit separator / start string
+```
+
+Implementación: `morselang/lexer.py`. Visualización en vivo: TP Inspector → pestaña 2.
 
 ## 3. Análisis sintáctico
 
-- Tipo: recursivo descendente (LL(1)).
-- Justificación: gramática diseñada para ser LL(1); cada no-terminal se decide por un solo token de lookahead. Se implementa con un método por no-terminal — alineado con el requisito de hacer todo a mano.
-- Implementación: `morselang/parser.py`.
-- Ejemplo de árbol: `python main.py examples/hola.morse --ast`.
+### Tipo
+
+Recursivo descendente, **LL(1)**.
+
+### Justificación
+
+Cada no-terminal se decide con un único token de lookahead. Las sentencias se discriminan por keyword inicial (VAR/MOSTRAR/SI/MIENTRAS) o IDENT (asignación). Las expresiones usan precedencia por niveles (`comparacion` → `aritmetica` → `termino` → `factor`) para evitar recursión por izquierda. Es el método más didáctico para un TP y se implementa en pocas líneas por no-terminal — alineado con el requisito de hacer todo a mano.
+
+### Implementación
+
+`morselang/parser.py`. Construye un AST de dataclasses definidas en `morselang/ast_nodes.py`.
+
+### Ejemplo
+
+Para `VAR X ASIG 10 MAS 5`:
+
+```
+Programa
+└── Declaracion(name='X')
+    └── BinOp('MAS')
+        ├── NumeroLit(10)
+        └── NumeroLit(5)
+```
+
+Visualización en vivo: TP Inspector → pestaña 3.
 
 ## 4. Tabla de símbolos
 
-- Información almacenada: tipo, valor, línea de declaración.
-- Estructura: hashmap (`dict` de Python) — ver `morselang/symbol_table.py`.
-- Ejemplo de uso: durante la compilación de `factorial.morse` la tabla acumula `N:NUM=5`, `R:NUM=1`, y se actualiza en cada iteración del `MIENTRAS`.
+### Estructura
+
+`dict` con clave = nombre de la variable y valor = `SymbolInfo(tipo, valor, linea_declaracion)`. Métodos: `declarar`, `asignar`, `consultar`, `existe`, `snapshot`. Un único ámbito global.
+
+### Estrategia
+
+- `declarar(name, tipo, line)` — falla si ya existe.
+- `asignar(name, valor)` — falla si no fue declarada.
+- `consultar(name)` — falla si no existe.
+
+### Ejemplo de uso (factorial.morse)
+
+| Línea | Tabla |
+|---|---|
+| 1 (VAR N=5)  | `{N: NUM=5}` |
+| 2 (VAR R=1)  | `{N: NUM=5, R: NUM=1}` |
+| iter 1       | `{N: NUM=4, R: NUM=5}` |
+| iter 2       | `{N: NUM=3, R: NUM=20}` |
+| iter 3       | `{N: NUM=2, R: NUM=60}` |
+| iter 4       | `{N: NUM=1, R: NUM=120}` |
+| iter 5       | `{N: NUM=0, R: NUM=120}` |
+| 7 (MOSTRAR R)| `{N: NUM=0, R: NUM=120}` → imprime 120 |
+
+Visualización en vivo: TP Inspector → pestaña 4.
 
 ## 5. Análisis semántico
 
-- Reglas: variable declarada antes de usarse, no redeclaración, tipos compatibles, condición de SI/MIENTRAS debe ser BOOL, división por literal cero rechazada en compilación.
-- Errores detectados: ver `examples/error_*.morse`.
-- Ejemplos:
-  - `error_no_declarada.morse` — usa `Z` sin declararla.
-  - `error_redeclaracion.morse` — declara `X` dos veces.
-  - `error_division_cero.morse` — divide por literal `0`.
+### Reglas
+
+1. Variable declarada antes de usarse.
+2. No redeclaración.
+3. Aritmética requiere ambos operandos NUM.
+4. Comparación requiere operandos del mismo tipo.
+5. Condición de SI / MIENTRAS debe ser BOOL.
+6. División por literal `0` rechazada en compilación.
+7. División por variable `0` se detecta en runtime (`RuntimeError_`).
+
+### Errores
+
+| Programa | Mensaje |
+|---|---|
+| `error_no_declarada.morse` | `Línea 1: variable 'Z' no declarada` |
+| `error_redeclaracion.morse` | `Línea 2: redeclaración de 'X' (declarada originalmente en línea 1)` |
+| `error_division_cero.morse` | `Línea 1: división por cero` |
+
+Visualización en vivo: TP Inspector → pestaña 5.
 
 ## 6. Síntesis — intérprete + ElevenLabs
 
-- Intérprete tree-walking: `morselang/interpreter.py`. Recorre el AST, mantiene un `SymbolTable` para las variables, y captura cada `MOSTRAR` en `interp.output`.
-- TTS con ElevenLabs: `morselang/tts.py`. Al ejecutar con `--tts`, la salida acumulada se manda a la API de ElevenLabs y se guarda como `output.mp3`.
-- Ejemplo: `python main.py examples/factorial.morse --tts` ejecuta, imprime `120` en consola y genera el audio narrando "ciento veinte".
+Se eligió **intérprete tree-walking** como fase de síntesis (Parte 6 del TP — opción "Intérprete del lenguaje"). El intérprete recorre el AST, mantiene una tabla de símbolos en runtime y captura cada `MOSTRAR` en `interp.output`.
+
+Como cierre vistoso, la salida acumulada se envía a la **API de ElevenLabs** para producir un `output.mp3` que narra el resultado con voz humana en español.
+
+```
+archivo.morse → Lexer → Parser → AST → Semántico → Intérprete → output.mp3
+```
+
+CLI:
+
+```bash
+python main.py examples/factorial.morse        # solo ejecuta
+python main.py examples/factorial.morse --tts  # + narración ElevenLabs
+```
+
+Studio:
+
+```bash
+streamlit run studio/app.py
+```
 
 ## 7. Uso de IA
 
